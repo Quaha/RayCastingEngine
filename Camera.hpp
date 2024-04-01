@@ -10,6 +10,9 @@ private:
 
 	long double angle = 0;
 
+	std::vector<Segment> rays;
+	bool rays_is_updated = false;
+
 public:
 
 	Camera() : camera_position({ 0, 0 }) {};
@@ -26,6 +29,6 @@ public:
 	Coordinates getPosition() const;
 	long double getAngle() const;
 
-	std::vector<Segment> getRays(const std::vector<Polygon>& objects) const;
-
+	void updateRays(const std::vector<Polygon>& objects);
+	std::vector<Segment> getRays(const std::vector<Polygon>& objects);
 };
