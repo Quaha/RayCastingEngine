@@ -52,7 +52,7 @@ void Camera::rotateRight() {
 	}
 }
 
-Coordinates Camera::getPosition() const {
+Point Camera::getPosition() const {
 	return camera_position;
 }
 
@@ -66,7 +66,7 @@ void Camera::updateRays(const std::vector<Polygon>& objects) {
 	for (long double i = angle - degreesToRadians(FOV / 2); i <= angle + degreesToRadians(FOV / 2); i += degreesToRadians(RAYS_STEP)) {
 		Segment temp;
 		temp.point1 = this->getPosition();
-		temp.point2 = { this->getPosition().x + RAYS_LENGTH * sin(i), this->getPosition().y + RAYS_LENGTH * cos(i) };
+		temp.point2 = { this->getPosition().x + RAYS_LENGTH * sin(i), this->getPosition().y + RAYS_LENGTH * cos(i), 0 };
 		rays.push_back(temp);
 	}
 	for (int i = 0; i < rays.size(); i++) {

@@ -6,7 +6,7 @@ class Camera {
 
 private:
 
-	Coordinates camera_position = { 0, 0 };
+	Point camera_position = { 0, 0, 0 };
 
 	long double angle = 0;
 
@@ -15,8 +15,8 @@ private:
 
 public:
 
-	Camera() : camera_position({ 0, 0 }) {};
-	Camera(long double x, long double y) : camera_position({ x, y }) {};
+	Camera() : camera_position({ 0, 0, 0 }) {};
+	Camera(long double x, long double y, long double z) : camera_position({ x, y, z }) {};
 
 	void moveForward();
 	void moveBack();
@@ -26,7 +26,7 @@ public:
 	void rotateLeft();
 	void rotateRight();
 
-	Coordinates getPosition() const;
+	Point getPosition() const;
 	long double getAngle() const;
 
 	void updateRays(const std::vector<Polygon>& objects);

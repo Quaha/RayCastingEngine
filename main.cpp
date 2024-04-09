@@ -7,10 +7,9 @@
 int main() {   
 
     Window window(WINDOW_WIDTH, WINDOW_HEIGHT, "RayCasting");
-    Camera player(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
+    Camera player(0, 0, 0);
 
-    Polygon R1({ 500, 500 }, 100, 100);
-    Polygon R2({ {100, 100}, {500, 100}, {250, 200} });
+    Polyhedron R({ 500, 500, 500 }, 100);
 
     while (window.isOpen()) {
         
@@ -18,8 +17,7 @@ int main() {
         processingUserActions(player, window);
 
         window.clear();
-        window.draw2D(player, { R1, R2 });
-        window.draw3D(player, { R1, R2 });
+        window.draw3D(player, { R });
         window.display();
     }
 

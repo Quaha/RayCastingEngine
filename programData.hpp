@@ -2,8 +2,8 @@
 
 #include "libs.hpp"
 
-const long double USER_MOVE_SPEED = 1.3;
-const long double USER_ROTATE_SPEED = 0.02; // [0, 2PI)
+const long double USER_MOVE_SPEED = 1.1;
+const long double USER_ROTATE_SPEED = 0.05; // [0, 2PI)
 
 const long double FOV = 90; //[0, 360]
 const long double RAYS_STEP = 0.07;
