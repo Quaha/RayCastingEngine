@@ -6,18 +6,19 @@
 
 int main() {   
 
-    Window window(WINDOW_WIDTH, WINDOW_HEIGHT, "RayCasting");
-    Camera player(0, 0, 0);
+    Window window(WINDOW_WIDTH, WINDOW_HEIGHT, "RayCastingEngine");
+    Camera user(0, 0, 0);
 
-    Polyhedron R({ 500, 500, 500 }, 100);
+    Polyhedron cube1({ 200 , -50, -50 }, 100);
+    Polyhedron cube2({ 400 , -50, -50 }, 100);
 
     while (window.isOpen()) {
         
         window.processingWindowEvents();
-        processingUserActions(player, window);
+        processingUserActions(user, window);
 
         window.clear();
-        window.draw3D(player, { R });
+        window.draw3D(user, { cube1, cube2 });
         window.display();
     }
 

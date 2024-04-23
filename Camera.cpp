@@ -1,54 +1,61 @@
-#include "programData.hpp"
+#include "libs.hpp"
 
 #include "Camera.hpp"
 
-/*
- ~-------->
- |        X
- |  
- |
- |
- V Y
-
-*/
-
 void Camera::moveForward() {
-	rays_is_updated = false;
-	camera_position.x += USER_MOVE_SPEED * sin(angle);
-	camera_position.y += USER_MOVE_SPEED * cos(angle);
+	camera_position.x += USER_MOVE_SPEED * cos(angle1) * cos(angle2);
+	camera_position.y += USER_MOVE_SPEED * sin(angle1) * cos(angle2);
+	camera_position.z += USER_MOVE_SPEED * sin(angle2);
 }
 
 void Camera::moveBack() {
-	rays_is_updated = false;
-	camera_position.x -= USER_MOVE_SPEED * sin(angle);
-	camera_position.y -= USER_MOVE_SPEED * cos(angle);
+	camera_position.x -= USER_MOVE_SPEED * cos(angle1) * cos(angle2);
+	camera_position.y -= USER_MOVE_SPEED * sin(angle1) * cos(angle2);
+	camera_position.z -= USER_MOVE_SPEED * sin(angle2);
 }
 
 void Camera::moveLeft() {
-	rays_is_updated = false;
-	camera_position.x += USER_MOVE_SPEED * sin(angle + PI / 2);
-	camera_position.y += USER_MOVE_SPEED * cos(angle + PI / 2);
+	camera_position.x += USER_MOVE_SPEED * sin(angle1);
+	camera_position.y -= USER_MOVE_SPEED * cos(angle1);
 }
 
 void Camera::moveRight() {
-	rays_is_updated = false;
-	camera_position.x -= USER_MOVE_SPEED * sin(angle + PI / 2);
-	camera_position.y -= USER_MOVE_SPEED * cos(angle + PI / 2);
+	camera_position.x -= USER_MOVE_SPEED * sin(angle1);
+	camera_position.y += USER_MOVE_SPEED * cos(angle1);
+}
+
+void Camera::moveUp() {
+	camera_position.z -= USER_MOVE_SPEED;
+}
+
+void Camera::moveDown() {
+	camera_position.z += USER_MOVE_SPEED;
 }
 
 void Camera::rotateLeft() {
-	rays_is_updated = false;
-	angle += USER_ROTATE_SPEED;
-	while (angle >= 2 * PI) {
-		angle -= 2 * PI;
+	angle1 -= USER_ROTATE_SPEED;
+	while (angle1 < 0) {
+		angle1 += 2 * PI;
 	}
 }
 
 void Camera::rotateRight() {
-	rays_is_updated = false;
-	angle -= USER_ROTATE_SPEED;
-	while (angle < 0) {
-		angle += 2 * PI;
+	angle1 += USER_ROTATE_SPEED;
+	while (angle1 >= 2 * PI) {
+		angle1 -= 2 * PI;
+	}
+}
+
+void Camera::rotateUp() {
+	angle2 -= USER_ROTATE_SPEED;
+	while (angle1 < 0) {
+		angle1 += 2 * PI;
+	}
+}
+void Camera::rotateDown() {
+	angle2 += USER_ROTATE_SPEED;
+	while (angle1 >= 2 * PI) {
+		angle1 -= 2 * PI;
 	}
 }
 
@@ -56,29 +63,36 @@ Point Camera::getPosition() const {
 	return camera_position;
 }
 
-long double Camera::getAngle() const {
-	return angle;
+double Camera::getAngle1() const {
+	return angle1;
 }
 
-void Camera::updateRays(const std::vector<Polygon>& objects) {
-	rays_is_updated = true;
-	rays.clear();
-	for (long double i = angle - degreesToRadians(FOV / 2); i <= angle + degreesToRadians(FOV / 2); i += degreesToRadians(RAYS_STEP)) {
-		Segment temp;
-		temp.point1 = this->getPosition();
-		temp.point2 = { this->getPosition().x + RAYS_LENGTH * sin(i), this->getPosition().y + RAYS_LENGTH * cos(i), 0 };
-		rays.push_back(temp);
-	}
-	for (int i = 0; i < rays.size(); i++) {
-		for (int j = 0; j < objects.size(); j++) {
-			rays[i].updateByPolygon(objects[j]);
+double Camera::getAngle2() const {
+	return angle2;
+}
+
+std::vector<std::vector<Segment>> Camera::getRays(const std::vector<Polyhedron>& objects) {
+	double RFOV = degreesToRadians(FOV);
+	double RSTEP = degreesToRadians(RAYS_STEP);
+	Segment FILLER;
+	FILLER.point1 = getPosition();
+	FILLER.point2 = getPosition();
+	std::vector<std::vector<Segment>> rays((int)(RFOV / RSTEP) + 1, std::vector<Segment>((int)(RFOV / RSTEP) + 1, FILLER));
+	int i = 0, j = 0;
+	for (double a = angle1 - RFOV/2; a <= angle1 + RFOV/2; a += RSTEP, i++) {
+		j = 0;
+		for (double b = angle2 - RFOV / 2; b <= angle2 + RFOV / 2; b += RSTEP, j++) {
+			rays[i][j].point2.x += RAYS_LENGTH * cos(a) * cos(b);
+			rays[i][j].point2.y += RAYS_LENGTH * sin(a) * cos(b);
+			rays[i][j].point2.z += RAYS_LENGTH * sin(b);
 		}
 	}
-}
-
-std::vector<Segment> Camera::getRays(const std::vector<Polygon>& objects) {
-	if (!rays_is_updated) {
-		updateRays(objects);
+	for (int i = 0; i < rays.size(); i++) {
+		for (int j = 0; j < rays[i].size(); j++) {
+			for (int k = 0; k < objects.size(); k++) {
+				rays[i][j].updateByPolyhedron(objects[k]);
+			}
+		}
 	}
 	return rays;
 }

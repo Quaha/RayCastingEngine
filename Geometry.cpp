@@ -2,18 +2,27 @@
 
 #include <cmath>
 
-#include <iostream>
-
-long double radiansToDegrees(long double angle) {
+double radiansToDegrees(double angle) {
 	return angle * 180 / PI;
 }
 
-long double degreesToRadians(long double angle) {
+double degreesToRadians(double angle) {
 	return angle * PI / 180;
+}
+
+int sgn(double value) {
+	if (value >= 0) {
+		return 1;
+	}
+	return -1;
 }
 
 Vector Point::operator-(const Point& other) const {
 	return { other, (*this) };
+}
+
+Point Point::operator+(const Vector& vector) const {
+	return { this->x + vector.x, this->y + vector.y, this->z + vector.z };
 }
 
 Vector::Vector(const Point& point1, const Point& point2) {
@@ -34,6 +43,10 @@ Vector& Vector::operator+=(const Vector& other) {
 	return (*this);
 }
 
+Vector Vector::operator*(double t) const {
+	return { this->x * t, this->y * t, this->z * t };
+}
+
 Vector Vector::operator-(const Vector& other) const {
 	return { this->x - other.x, this->y - other.y, this->z - other.z };
 }
@@ -50,53 +63,61 @@ Vector Vector::operator-() const {
 	return { -this->x, -this->y, -this->z };
 }
 
-long double Vector::getAbs2() const {
+double Vector::getAbs2() const {
 	return x * x + y * y + z * z;
 }
 
-long double Vector::abs2(const Vector& vector) {
+double Vector::abs2(const Vector& vector) {
 	return vector.x * vector.x + vector.y * vector.y + vector.z * vector.z;
 }
 
-long double Vector::scalarProduct(const Vector& vector1, const Vector& vector2) {
+double Vector::scalarProduct(const Vector& vector1, const Vector& vector2) {
 	return vector1.x * vector2.x + vector1.y * vector2.y + vector1.z * vector2.z;
 }
 
-long double Segment::getLength2() const {
+double Vector::vectorProduct(const Vector& vector1, const Vector& vector2) {
+	return vector1.y * vector2.z - vector1.z * vector2.y - vector1.x * vector2.z + vector2.x * vector1.z + vector1.x * vector2.y - vector2.x * vector1.y;
+}
+
+double Segment::getLength2() const {
 	return (point1 - point2).getAbs2();
 }
 
-void Segment::updateBySegment(const Segment& segment) {
-	Point P1 = point1;
-	Point P2 = point2;
-	Line L1(P1, P2);
+void Segment::updateByPolygon(const Polygon& polygon) {
+	
+	Plane plane(polygon.corners[0], polygon.corners[1], polygon.corners[2]);
 
-	Point P3 = segment.point1;
-	Point P4 = segment.point2;
-	Line L2(P3, P4);
+	Point possible_point = Plane::getIntersect({point1, point2 - point1}, plane);
 
-	Point P = Line::getIntersect(L1, L2);
+	if (plane.inPlane(possible_point)) {
+		int cnt_plus = 0;
+		int cnt_minus = 0;
+		for (int i = 0; i < polygon.corners.size(); i++) {
+			Point P1 = polygon.corners[i];
+			Point P2 = polygon.corners[(i + 1) % polygon.corners.size()];
+			if (sgn(Vector::vectorProduct(P2 - P1, possible_point - P1)) == 1) {
+				cnt_plus++;
+			}
+			else {
+				cnt_minus--;
+			}
+		}
 
-	long double V1 = (P2.x - P1.x) * (P2.x - P1.x) + (P2.y - P1.y) * (P2.y - P1.y) + (P2.z - P1.z) * (P2.z - P1.z);
-	long double V2 = (P2.x - P.x) * (P2.x - P.x) + (P2.y - P.y) * (P2.y - P.y) + (P2.z - P.z) * (P2.z - P.z);
-	long double V3 = (P.x - P1.x) * (P.x - P1.x) + (P.y - P1.y) * (P.y - P1.y) + (P.z - P1.z) * (P.z - P1.z);
+		if (cnt_plus == 0 || cnt_minus == 0) {
+			if ((this->point2 - (this->point1)).getAbs2() > (possible_point - (this->point1)).getAbs2()) {
+				point2 = possible_point;
+			}
+		}
 
-	long double V4 = (P3.x - P4.x) * (P3.x - P4.x) + (P3.y - P4.y) * (P3.y - P4.y) + (P3.z - P4.z) * (P3.z - P4.z);
-	long double V5 = (P3.x - P.x) * (P3.x - P.x) + (P3.y - P.y) * (P3.y - P.y) + (P3.z - P.z) * (P3.z - P.z);
-	long double V6 = (P.x - P4.x) * (P.x - P4.x) + (P.y - P4.y) * (P.y - P4.y) + (P.z - P4.z) * (P.z - P4.z);
-
-	if (abs(sqrt((V1)) - sqrt(V2) - sqrt(V3)) <= 1e-10 && abs(sqrt((V4)) - sqrt(V5) - sqrt(V6)) <= 1e-10) {
-		point2 = P;
 	}
 }
 
-void Segment::updateByPolygon(const Polygon& polygon) {
-	for (int i = 0; i < polygon.corners.size() - 1; i++) {
-		Segment S = { polygon.corners[i], polygon.corners[i + 1] };
-		updateBySegment(S);
+void Segment::updateByPolyhedron(const Polyhedron& polyhedron) {
+
+	for (int i = 0; i < polyhedron.edges.size(); i++) {
+		updateByPolygon(polyhedron.edges[i]);
 	}
-	Segment S = { polygon.corners.back(), polygon.corners[0] };
-	updateBySegment(S);
+
 }
 
 Polygon::Polygon(const std::vector<Point> points) {
@@ -105,22 +126,24 @@ Polygon::Polygon(const std::vector<Point> points) {
 
 Point Polygon::getIntersect(const Line& line, const Polygon& polygon) {
 	
-
-
+	Plane plane(polygon.corners[0], polygon.corners[1], polygon.corners[2]);
+	double t = -(plane.A * line.point.x + plane.B * line.point.y + plane.C * line.point.z + plane.D) / (plane.A * line.vector.x + plane.B * line.vector.y + plane.C * line.vector.z);
 	
+	Point result = line.point + line.vector * t;
+	return result;
 }
 
-Polyhedron::Polyhedron(const Point& point, long double size) {
-	long double x = point.x;
-	long double y = point.y;
-	long double z = point.z;
+Polyhedron::Polyhedron(const Point& point, double size) {
+	double x = point.x;
+	double y = point.y;
+	double z = point.z;
 
-	Polygon P1({ {x, y, z}, {x + size, y, z}, {x, y + size, z}, {x + size, y + size, z} });
-	Polygon P2({ {x, y, z}, {x + size, y, z}, {x, y, z + size}, {x + size, y, z + size} });
-	Polygon P3({ {x, y, z}, {x, y + size, z}, {x, y, z + size}, {x, y + size, z + size} });
-	Polygon P4({ {x + size, y + size, z + size}, {x, y + size, z + size}, {x + size, y, z + size}, {x, y, z + size} });
-	Polygon P5({ {x + size, y + size, z + size}, {x, y + size, z + size}, {x + size, y + size, z}, {x, y + size, z} });
-	Polygon P6({ {x + size, y + size, z + size}, {x + size, y, z + size}, {x + size, y + size, z}, {x + size, y, z} });
+	Polygon P1({ {x, y, z}, {x + size, y, z}, {x + size, y + size, z} , {x, y + size, z} });
+	Polygon P2({ {x, y, z}, {x - size, y, z}, {x - size, y, z - size} , {x, y, z - size} });
+	Polygon P3({ {x, y, z}, {x, y, z + size}, {x, y + size, z + size} , {x, y + size, z} });
+	Polygon P4({ {x + size, y + size, z + size}, {x, y + size, z + size}, {x, y, z + size}, {x + size, y, z + size} });
+	Polygon P5({ {x + size, y + size, z + size}, {x + 2 * size, y + size, z + size}, {x + 2 * size, y + size, z + 2 * size}, {x + size, y + size, z + 2 * size} });
+	Polygon P6({ {x + size, y + size, z + size}, {x + size, y, z + size}, {x + size, y, z}, {x + size, y + size, z} });
 
 	edges.push_back(P1);
 	edges.push_back(P2);
@@ -136,9 +159,32 @@ Line::Line(const Point& point1, const Point& point2) {
 }
 
 Point Line::getIntersect(const Line& line1, const Line& line2) {
-	long double t = (line2.vector.x * (line2.point.y - line1.point.y) - line2.vector.y * (line2.point.x - line1.point.x)) / (line1.vector.y * line2.vector.x - line1.vector.x * line2.vector.y);
-	long double x = line1.point.x + line1.vector.x * t;
-	long double y = line1.point.y + line1.vector.y * t;
-	long double z = line1.point.z + line1.vector.z * t;
+	double t = (line2.vector.x * (line2.point.y - line1.point.y) - line2.vector.y * (line2.point.x - line1.point.x)) / (line1.vector.y * line2.vector.x - line1.vector.x * line2.vector.y);
+	double x = line1.point.x + line1.vector.x * t;
+	double y = line1.point.y + line1.vector.y * t;
+	double z = line1.point.z + line1.vector.z * t;
 	return { x, y, z };
+}
+
+Plane::Plane(const Point& point1, const Point& point2, const Point& point3) {
+	point = point1;
+	vector1 = point2 - point1;
+	vector2 = point3 - point1;
+
+	A = vector1.y * vector2.z - vector2.y * vector1.z;
+	B = - (vector1.x * vector2.z - vector2.x * vector1.z);
+	C = vector1.x * vector2.y - vector2.x * vector1.y;
+	D = -point.x * A + point.y * B - point.z * C;
+
+}
+
+bool Plane::inPlane(const Point& point) {
+	return abs(A * point.x + B * point.y + C * point.z + D) < ACCURACY;
+}
+
+Point Plane::getIntersect(const Line& line, const Plane& plane) {
+	double t = -(plane.A * line.point.x + plane.B * line.point.y + plane.C * line.point.z + plane.D) / (plane.A * line.vector.x + plane.B * line.vector.y + plane.C * line.vector.z);
+
+	Point result = line.point + line.vector * t;
+	return result;
 }

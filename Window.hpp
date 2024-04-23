@@ -1,6 +1,6 @@
 #pragma once
 
-#include "programData.hpp"
+#include "libs.hpp"
 #include "Camera.hpp"
 
 class Window {
@@ -17,9 +17,9 @@ public:
 	void processingWindowEvents();
 
 	void drawPolygon(const Polygon& segment, const sf::Color colour);
-	void drawSegment(const Segment& segment, const sf::Color colour);
 
-	//void draw2D(Camera& camera, const std::vector<Polygon>& objects);
+	void drawRect(float x, float y, float width, float height, sf::Color C);
+
 	void draw3D(Camera& camera, const std::vector<Polyhedron>& objects);
 
 	void display();
