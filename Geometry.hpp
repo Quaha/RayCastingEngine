@@ -52,6 +52,7 @@ struct Vector {
 	Vector operator-() const;
 
 	double getAbs2() const;
+	double getAbs() const;
 	static double abs2(const Vector& vector);
 
 	static double scalarProduct(const Vector& vector1, const Vector& vector2);
@@ -67,6 +68,7 @@ struct Segment {
 	Segment(const Point& point1, const Point& point2) : point1(point1), point2(point2) {};
 
 	double getLength2() const;
+	double getLength() const;
 
 	void updateByPolygon(const Polygon& polygon);
 	void updateByPolyhedron(const Polyhedron& polyhedron);
@@ -97,7 +99,6 @@ struct Line {
 	Line(const Point& point, const Vector& vector) : point(point), vector(vector) {};
 	Line(const Point& point1, const Point& point2);
 
-	static Point getIntersect(const Line& line1, const Line& line2);
 };
 
 struct Plane {

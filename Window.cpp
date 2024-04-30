@@ -49,18 +49,15 @@ void Window::draw3D(Camera& camera, const std::vector<Polyhedron> &objects) {
 
 	std::vector<std::vector<Segment>> rays = camera.getRays(objects);
 
-	int N = rays.size();
-	int M = rays[0].size();
+	double W = (double)WINDOW_WIDTH / REAL_WIDTH;
+	double H = (double)WINDOW_HEIGHT / REAL_HEIGHT;
 
-	double W = WINDOW_WIDTH / M;
-	double H = WINDOW_HEIGHT / N;
-
-	for (int i = N - 1; i >= 0; i--) {
-		for (int j = 0; j < M; j++) {
+	for (int i = 0; i < REAL_WIDTH; i++) {
+		for (int j = 0; j < REAL_HEIGHT; j++) {
 			Segment ray = rays[i][j];
-			double CURR_LENGTH = ray.getLength2();
-			if (abs(CURR_LENGTH - RAYS_LENGTH * RAYS_LENGTH) > ACCURACY) {
-				sf::Uint8 C = 256 * (sqrt(CURR_LENGTH / (RAYS_LENGTH * RAYS_LENGTH)));
+			double CURR_LENGTH = ray.getLength();
+			if (abs(CURR_LENGTH - RAYS_LENGTH) > ACCURACY) {
+				sf::Uint8 C = 256 * (CURR_LENGTH / RAYS_LENGTH);
 				drawRect(W * i, H * j, W, H, { C, C, C });
 			}
 		}

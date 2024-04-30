@@ -11,6 +11,8 @@ int main() {
 
     Polyhedron cube1({ 200 , -50, -50 }, 100);
     Polyhedron cube2({ 400 , -50, -50 }, 100);
+    Polyhedron cube3({ 300 , 200, -50 }, 100);
+
 
     while (window.isOpen()) {
         
@@ -18,7 +20,7 @@ int main() {
         processingUserActions(user, window);
 
         window.clear();
-        window.draw3D(user, { cube1, cube2 });
+        window.draw3D(user, { cube1, cube2, cube3 });
         window.display();
     }
 

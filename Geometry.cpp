@@ -67,6 +67,10 @@ double Vector::getAbs2() const {
 	return x * x + y * y + z * z;
 }
 
+double Vector::getAbs() const {
+	return sqrt(x * x + y * y + z * z);
+}
+
 double Vector::abs2(const Vector& vector) {
 	return vector.x * vector.x + vector.y * vector.y + vector.z * vector.z;
 }
@@ -81,6 +85,10 @@ double Vector::vectorProduct(const Vector& vector1, const Vector& vector2) {
 
 double Segment::getLength2() const {
 	return (point1 - point2).getAbs2();
+}
+
+double Segment::getLength() const {
+	return (point1 - point2).getAbs();
 }
 
 void Segment::updateByPolygon(const Polygon& polygon) {
@@ -104,6 +112,12 @@ void Segment::updateByPolygon(const Polygon& polygon) {
 		}
 
 		if (cnt_plus == 0 || cnt_minus == 0) {
+			Vector AC = possible_point - point1;
+			Vector BC = possible_point - point2;
+			Vector AB = point1 - point2;
+
+			if (abs(AC.getAbs() + BC.getAbs() - AB.getAbs()) > ACCURACY) return;
+			
 			if ((this->point2 - (this->point1)).getAbs2() > (possible_point - (this->point1)).getAbs2()) {
 				point2 = possible_point;
 			}
@@ -139,10 +153,10 @@ Polyhedron::Polyhedron(const Point& point, double size) {
 	double z = point.z;
 
 	Polygon P1({ {x, y, z}, {x + size, y, z}, {x + size, y + size, z} , {x, y + size, z} });
-	Polygon P2({ {x, y, z}, {x - size, y, z}, {x - size, y, z - size} , {x, y, z - size} });
+	Polygon P2({ {x, y, z}, {x + size, y, z}, {x + size, y, z + size} , {x, y, z + size} });
 	Polygon P3({ {x, y, z}, {x, y, z + size}, {x, y + size, z + size} , {x, y + size, z} });
 	Polygon P4({ {x + size, y + size, z + size}, {x, y + size, z + size}, {x, y, z + size}, {x + size, y, z + size} });
-	Polygon P5({ {x + size, y + size, z + size}, {x + 2 * size, y + size, z + size}, {x + 2 * size, y + size, z + 2 * size}, {x + size, y + size, z + 2 * size} });
+	Polygon P5({ {x + size, y + size, z + size}, {x, y + size, z + size}, {x, y + size, z}, {x + size, y + size, z} });
 	Polygon P6({ {x + size, y + size, z + size}, {x + size, y, z + size}, {x + size, y, z}, {x + size, y + size, z} });
 
 	edges.push_back(P1);
@@ -156,14 +170,6 @@ Polyhedron::Polyhedron(const Point& point, double size) {
 Line::Line(const Point& point1, const Point& point2) {
 	point = point1;
 	vector = point2 - point1;
-}
-
-Point Line::getIntersect(const Line& line1, const Line& line2) {
-	double t = (line2.vector.x * (line2.point.y - line1.point.y) - line2.vector.y * (line2.point.x - line1.point.x)) / (line1.vector.y * line2.vector.x - line1.vector.x * line2.vector.y);
-	double x = line1.point.x + line1.vector.x * t;
-	double y = line1.point.y + line1.vector.y * t;
-	double z = line1.point.z + line1.vector.z * t;
-	return { x, y, z };
 }
 
 Plane::Plane(const Point& point1, const Point& point2, const Point& point3) {
