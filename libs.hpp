@@ -8,4 +8,4 @@
 #include <SFML/Graphics.hpp>
 
 #include "Geometry.hpp"
-#include "constants.hpp"
+#include "Settings.hpp"

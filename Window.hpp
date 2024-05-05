@@ -16,11 +16,9 @@ public:
 
 	void processingWindowEvents();
 
-	void drawPolygon(const Polygon& segment, const sf::Color colour);
+	void drawRectangle(float x, float y, float height, float width, sf::ConvexShape &poly_shape, sf::Color C);
 
-	void drawRect(float x, float y, float width, float height, sf::Color C);
-
-	void draw3D(Camera& camera, const std::vector<Polyhedron>& objects);
+	void drawObjects3D(Camera& camera, const std::vector<Polyhedron>& objects);
 
 	void display();
 	void clear(sf::Color colour = sf::Color::White);

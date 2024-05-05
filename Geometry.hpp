@@ -1,62 +1,53 @@
 #pragma once
 
 #include <vector>
+#include <CL/cl.h>
 
-#include "constants.hpp"
+#include "Settings.hpp"
 
-struct Coordinates;
 struct Point;
 struct Vector;
 struct Segment;
-struct Polygon;
 struct Polyhedron;
 struct Line;
 struct Plane;
+struct Triangle;
 
-double radiansToDegrees(double angle);
-double degreesToRadians(double angle);
-
-int sgn(double value);
+float radiansToDegrees(float angle);
+float degreesToRadians(float angle);
 
 struct Point {
 
-	double x = 0;
-	double y = 0;
-	double z = 0;
+	float x = 0, y = 0, z = 0;
 
 	Vector operator-(const Point& point) const;
 	Point operator+(const Vector& vector) const;
 
 	Point() : x(0), y(0), z(0) {};
-	Point(double x, double y, double z) : x(x), y(y), z(z) {};
+	Point(float x, float y, float z) : x(x), y(y), z(z) {};
 };
 
 struct Vector {
 
-	double x = 0;
-	double y = 0;
-	double z = 0;
+	float x = 0, y = 0, z = 0;
 
 	Vector() : x(0), y(0), z(0) {};
-	Vector(double x, double y, double z) : x(x), y(y), z(z) {};
-	Vector(const Point& point1, const Point& point2); // Create an AB Vector
+	Vector(float x, float y, float z) : x(x), y(y), z(z) {};
+	Vector(const Point& point1, const Point& point2); // Create an directed vector from point1 to point2
 
 	Vector operator+(const Vector& other) const;
 	Vector& operator+=(const Vector& other);
 
-	Vector operator*(double t) const;
+	Vector operator*(float t) const;
 
 	Vector operator-(const Vector& other) const;
 	Vector& operator-=(const Vector& other);
 
 	Vector operator-() const;
 
-	double getAbs2() const;
-	double getAbs() const;
-	static double abs2(const Vector& vector);
-
-	static double scalarProduct(const Vector& vector1, const Vector& vector2);
-	static double vectorProduct(const Vector& vector1, const Vector& vector2);
+	float getAbs2() const;
+	float getAbs() const;
+	static float abs2(const Vector& vector);
 };
 
 struct Segment {
@@ -64,31 +55,21 @@ struct Segment {
 	Point point1 = { 0, 0, 0 };
 	Point point2 = { 0, 0, 0 };
 
+	bool updated = false;
+
 	Segment() : point1({ 0, 0, 0 }), point2({ 0, 0, 0 }) {};
 	Segment(const Point& point1, const Point& point2) : point1(point1), point2(point2) {};
 
-	double getLength2() const;
-	double getLength() const;
-
-	void updateByPolygon(const Polygon& polygon);
-	void updateByPolyhedron(const Polyhedron& polyhedron);
-};
-
-struct Polygon {
-
-	std::vector<Point> corners;
-
-	Polygon(const std::vector<Point> points);
-
-	static Point getIntersect(const Line& line, const Polygon& polygon);
-
+	float getLength2() const;
+	float getLength() const;
 };
 
 struct Polyhedron {
 
-	std::vector<Polygon> edges;
+	std::vector<Triangle> edges;
 
-	Polyhedron(const Point& point, double size); // Create an cube
+	Polyhedron(const Point& point, float size); // Create an cube
+	Polyhedron(const Point& point1, const Point& point2, const Point& point3, const Point& point4); // Create an tetrahedron
 };
 
 struct Line {
@@ -107,10 +88,25 @@ struct Plane {
 	Vector vector1 = { 0, 0, 0 };
 	Vector vector2 = { 0, 0, 0 };
 
-	double A = 0, B = 0, C = 0, D = 0;
+	float A = 0, B = 0, C = 0, D = 0;
 
 	Plane(const Point& point1, const Point& point2, const Point& point3);
 
 	bool inPlane(const Point& point);
 	static Point getIntersect(const Line& line, const Plane& plane);
+};
+
+struct Triangle {
+
+	Point P1 = { 0, 0, 0 };
+	Point P2 = { 0, 0, 0 };
+	Point P3 = { 0, 0, 0 };
+
+	static float getArea(const Point& point1, const Point& point2, const Point& point3);
+
+	Triangle(const Point& point1, const Point& point2, const Point& point3);
+	bool inTriangle(const Point& point) const;
+
+	void updateRays(Segment rays[REAL_HEIGHT][REAL_WIDTH]) const;
+
 };

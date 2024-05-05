@@ -2,19 +2,12 @@
 
 #include <cmath>
 
-double radiansToDegrees(double angle) {
+float radiansToDegrees(float angle) {
 	return angle * 180 / PI;
 }
 
-double degreesToRadians(double angle) {
+float degreesToRadians(float angle) {
 	return angle * PI / 180;
-}
-
-int sgn(double value) {
-	if (value >= 0) {
-		return 1;
-	}
-	return -1;
 }
 
 Vector Point::operator-(const Point& other) const {
@@ -43,7 +36,7 @@ Vector& Vector::operator+=(const Vector& other) {
 	return (*this);
 }
 
-Vector Vector::operator*(double t) const {
+Vector Vector::operator*(float t) const {
 	return { this->x * t, this->y * t, this->z * t };
 }
 
@@ -63,108 +56,73 @@ Vector Vector::operator-() const {
 	return { -this->x, -this->y, -this->z };
 }
 
-double Vector::getAbs2() const {
+float Vector::getAbs2() const {
 	return x * x + y * y + z * z;
 }
 
-double Vector::getAbs() const {
+float Vector::getAbs() const {
 	return sqrt(x * x + y * y + z * z);
 }
 
-double Vector::abs2(const Vector& vector) {
+float Vector::abs2(const Vector& vector) {
 	return vector.x * vector.x + vector.y * vector.y + vector.z * vector.z;
 }
 
-double Vector::scalarProduct(const Vector& vector1, const Vector& vector2) {
-	return vector1.x * vector2.x + vector1.y * vector2.y + vector1.z * vector2.z;
-}
-
-double Vector::vectorProduct(const Vector& vector1, const Vector& vector2) {
-	return vector1.y * vector2.z - vector1.z * vector2.y - vector1.x * vector2.z + vector2.x * vector1.z + vector1.x * vector2.y - vector2.x * vector1.y;
-}
-
-double Segment::getLength2() const {
+float Segment::getLength2() const {
 	return (point1 - point2).getAbs2();
 }
 
-double Segment::getLength() const {
+float Segment::getLength() const {
 	return (point1 - point2).getAbs();
 }
 
-void Segment::updateByPolygon(const Polygon& polygon) {
-	
-	Plane plane(polygon.corners[0], polygon.corners[1], polygon.corners[2]);
+Polyhedron::Polyhedron(const Point& point, float size) {
+	float x = point.x;
+	float y = point.y;
+	float z = point.z;
 
-	Point possible_point = Plane::getIntersect({point1, point2 - point1}, plane);
+	Triangle T1({ x, y, z }, { x + size, y, z }, { x, y + size, z });
+	Triangle T2({ x + size, y + size, z }, { x + size, y, z }, { x, y + size, z });
 
-	if (plane.inPlane(possible_point)) {
-		int cnt_plus = 0;
-		int cnt_minus = 0;
-		for (int i = 0; i < polygon.corners.size(); i++) {
-			Point P1 = polygon.corners[i];
-			Point P2 = polygon.corners[(i + 1) % polygon.corners.size()];
-			if (sgn(Vector::vectorProduct(P2 - P1, possible_point - P1)) == 1) {
-				cnt_plus++;
-			}
-			else {
-				cnt_minus--;
-			}
-		}
+	edges.push_back(T1);
+	edges.push_back(T2);
 
-		if (cnt_plus == 0 || cnt_minus == 0) {
-			Vector AC = possible_point - point1;
-			Vector BC = possible_point - point2;
-			Vector AB = point1 - point2;
+	Triangle T3({ x, y, z + size }, { x + size, y, z + size }, { x, y + size, z + size });
+	Triangle T4({ x + size, y + size, z + size }, { x + size, y, z + size }, { x, y + size, z + size });
 
-			if (abs(AC.getAbs() + BC.getAbs() - AB.getAbs()) > ACCURACY) return;
-			
-			if ((this->point2 - (this->point1)).getAbs2() > (possible_point - (this->point1)).getAbs2()) {
-				point2 = possible_point;
-			}
-		}
+	edges.push_back(T3);
+	edges.push_back(T4);
 
-	}
+	Triangle T5({ x, y, z }, { x + size, y, z }, { x, y, z + size });
+	Triangle T6({ x + size, y, z + size }, { x + size, y, z }, { x, y, z + size });
+
+	edges.push_back(T5);
+	edges.push_back(T6);
+
+	Triangle T7({ x, y + size, z }, { x + size, y + size, z }, { x, y + size, z + size });
+	Triangle T8({ x + size, y + size, z + size }, { x + size, y + size, z }, { x, y + size, z + size });
+
+	edges.push_back(T7);
+	edges.push_back(T8);
+
+	Triangle T9({ x, y, z }, { x, y + size, z }, { x, y, z + size });
+	Triangle T10({ x, y + size, z + size }, { x, y + size, z }, { x, y, z + size });
+
+	edges.push_back(T9);
+	edges.push_back(T10);
+
+	Triangle T11({ x + size, y, z }, { x + size, y + size, z }, { x + size, y, z + size });
+	Triangle T12({ x + size, y + size, z + size }, { x + size, y + size, z }, { x + size, y, z + size });
+
+	edges.push_back(T11);
+	edges.push_back(T12);
 }
 
-void Segment::updateByPolyhedron(const Polyhedron& polyhedron) {
-
-	for (int i = 0; i < polyhedron.edges.size(); i++) {
-		updateByPolygon(polyhedron.edges[i]);
-	}
-
-}
-
-Polygon::Polygon(const std::vector<Point> points) {
-	corners = points;
-}
-
-Point Polygon::getIntersect(const Line& line, const Polygon& polygon) {
-	
-	Plane plane(polygon.corners[0], polygon.corners[1], polygon.corners[2]);
-	double t = -(plane.A * line.point.x + plane.B * line.point.y + plane.C * line.point.z + plane.D) / (plane.A * line.vector.x + plane.B * line.vector.y + plane.C * line.vector.z);
-	
-	Point result = line.point + line.vector * t;
-	return result;
-}
-
-Polyhedron::Polyhedron(const Point& point, double size) {
-	double x = point.x;
-	double y = point.y;
-	double z = point.z;
-
-	Polygon P1({ {x, y, z}, {x + size, y, z}, {x + size, y + size, z} , {x, y + size, z} });
-	Polygon P2({ {x, y, z}, {x + size, y, z}, {x + size, y, z + size} , {x, y, z + size} });
-	Polygon P3({ {x, y, z}, {x, y, z + size}, {x, y + size, z + size} , {x, y + size, z} });
-	Polygon P4({ {x + size, y + size, z + size}, {x, y + size, z + size}, {x, y, z + size}, {x + size, y, z + size} });
-	Polygon P5({ {x + size, y + size, z + size}, {x, y + size, z + size}, {x, y + size, z}, {x + size, y + size, z} });
-	Polygon P6({ {x + size, y + size, z + size}, {x + size, y, z + size}, {x + size, y, z}, {x + size, y + size, z} });
-
-	edges.push_back(P1);
-	edges.push_back(P2);
-	edges.push_back(P3);
-	edges.push_back(P4);
-	edges.push_back(P5);
-	edges.push_back(P6);
+Polyhedron::Polyhedron(const Point& point1, const Point& point2, const Point& point3, const Point& point4) {
+	edges.push_back({ point1, point2, point3 });
+	edges.push_back({ point4, point2, point3 });
+	edges.push_back({ point1, point4, point3 });
+	edges.push_back({ point1, point2, point4 });
 }
 
 Line::Line(const Point& point1, const Point& point2) {
@@ -180,8 +138,7 @@ Plane::Plane(const Point& point1, const Point& point2, const Point& point3) {
 	A = vector1.y * vector2.z - vector2.y * vector1.z;
 	B = - (vector1.x * vector2.z - vector2.x * vector1.z);
 	C = vector1.x * vector2.y - vector2.x * vector1.y;
-	D = -point.x * A + point.y * B - point.z * C;
-
+	D = -point.x * A - point.y * B - point.z * C;
 }
 
 bool Plane::inPlane(const Point& point) {
@@ -189,8 +146,50 @@ bool Plane::inPlane(const Point& point) {
 }
 
 Point Plane::getIntersect(const Line& line, const Plane& plane) {
-	double t = -(plane.A * line.point.x + plane.B * line.point.y + plane.C * line.point.z + plane.D) / (plane.A * line.vector.x + plane.B * line.vector.y + plane.C * line.vector.z);
+	float t = -(plane.A * line.point.x + plane.B * line.point.y + plane.C * line.point.z + plane.D) / (plane.A * line.vector.x + plane.B * line.vector.y + plane.C * line.vector.z);
 
 	Point result = line.point + line.vector * t;
 	return result;
+}
+
+float Triangle::getArea(const Point& point1, const Point& point2, const Point& point3) {
+	float d1 = (point1 - point2).getAbs();
+	float d2 = (point1 - point3).getAbs();
+	float d3 = (point2 - point3).getAbs();
+	float p = (d1 + d2 + d3) / 2;
+	return sqrt(p * (p - d1) * (p - d2) * (p - d3));
+}
+
+Triangle::Triangle(const Point& point1, const Point& point2, const Point& point3) {
+	P1 = point1;
+	P2 = point2;
+	P3 = point3;
+}
+
+bool Triangle::inTriangle(const Point& P) const{
+	return abs(getArea(P1, P2, P3) - (getArea(P, P2, P3) + getArea(P1, P, P3) + getArea(P1, P2, P))) < ACCURACY;
+}
+
+void Triangle::updateRays(Segment rays[REAL_HEIGHT][REAL_WIDTH]) const {
+
+	Plane plane(P1, P2, P3);
+
+	for (int i = 0; i < REAL_HEIGHT; i++) {
+		for (int j = 0; j < REAL_WIDTH; j++) {
+
+			Point possible_point = Plane::getIntersect({ rays[i][j].point1,  rays[i][j].point2 - rays[i][j].point1 }, plane);
+			if (inTriangle(possible_point)) {
+				Vector AC = possible_point - rays[i][j].point1;
+				Vector BC = possible_point - rays[i][j].point2;
+				Vector AB = rays[i][j].point1 - rays[i][j].point2;
+
+				if (abs(AC.getAbs() + BC.getAbs() - AB.getAbs()) > ACCURACY) return;
+
+				if ((rays[i][j].point2 - rays[i][j].point1).getAbs2() > (possible_point - rays[i][j].point1).getAbs2()) {
+					rays[i][j].point2 = possible_point;
+					rays[i][j].updated = true;
+				}
+			}
+		}
+	}
 }

@@ -24,19 +24,7 @@ void Window::processingWindowEvents() {
 	}
 }
 
-void Window::drawPolygon(const Polygon& polygon, const sf::Color colour) {
-	sf::ConvexShape poly_shape;
-	poly_shape.setPointCount(polygon.corners.size());
-	for (int i = 0; i < polygon.corners.size(); i++) {
-		poly_shape.setPoint(i, { (float)polygon.corners[i].x, (float)polygon.corners[i].y });
-	}
-	poly_shape.setFillColor(colour);
-	window.draw(poly_shape);
-}
-
-void Window::drawRect(float x, float y, float width, float height, sf::Color C) {
-	sf::ConvexShape poly_shape;
-	poly_shape.setPointCount(4);
+void Window::drawRectangle(float x, float y, float height, float width, sf::ConvexShape &poly_shape, sf::Color C) {
 	poly_shape.setPoint(0, { x, y });
 	poly_shape.setPoint(1, { x + width, y });
 	poly_shape.setPoint(2, { x + width, y + height });
@@ -45,20 +33,22 @@ void Window::drawRect(float x, float y, float width, float height, sf::Color C) 
 	window.draw(poly_shape);
 }
 
-void Window::draw3D(Camera& camera, const std::vector<Polyhedron> &objects) {
+void Window::drawObjects3D(Camera& camera, const std::vector<Polyhedron> &objects) {
 
-	std::vector<std::vector<Segment>> rays = camera.getRays(objects);
+	Segment rays[REAL_HEIGHT][REAL_WIDTH];
+	camera.getRays(objects, rays);
 
-	double W = (double)WINDOW_WIDTH / REAL_WIDTH;
-	double H = (double)WINDOW_HEIGHT / REAL_HEIGHT;
+	float W = (float)WINDOW_WIDTH / REAL_WIDTH;
+	float H = (float)WINDOW_HEIGHT / REAL_HEIGHT;
 
-	for (int i = 0; i < REAL_WIDTH; i++) {
-		for (int j = 0; j < REAL_HEIGHT; j++) {
-			Segment ray = rays[i][j];
-			double CURR_LENGTH = ray.getLength();
-			if (abs(CURR_LENGTH - RAYS_LENGTH) > ACCURACY) {
-				sf::Uint8 C = 256 * (CURR_LENGTH / RAYS_LENGTH);
-				drawRect(W * i, H * j, W, H, { C, C, C });
+	sf::ConvexShape poly_shape;
+	poly_shape.setPointCount(4);
+
+	for (int i = 0; i < REAL_HEIGHT; i++) {
+		for (int j = 0; j < REAL_WIDTH; j++) {
+			if (rays[i][j].updated) {
+				sf::Uint8 C = (sf::Uint8)(256 * (rays[i][j].getLength() / RAYS_LENGTH));
+				drawRectangle(W * j, H * i, H, W, poly_shape, { C, C, C });
 			}
 		}
 	}

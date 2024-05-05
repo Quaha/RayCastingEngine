@@ -3,15 +3,13 @@
 #include "Camera.hpp"
 
 void Camera::moveForward() {
-	camera_position.x += USER_MOVE_SPEED * cos(angle1) * cos(angle2);
-	camera_position.y += USER_MOVE_SPEED * sin(angle1) * cos(angle2);
-	camera_position.z += USER_MOVE_SPEED * sin(angle2);
+	camera_position.x += USER_MOVE_SPEED * cos(angle1);
+	camera_position.y += USER_MOVE_SPEED * sin(angle1);
 }
 
 void Camera::moveBack() {
-	camera_position.x -= USER_MOVE_SPEED * cos(angle1) * cos(angle2);
-	camera_position.y -= USER_MOVE_SPEED * sin(angle1) * cos(angle2);
-	camera_position.z -= USER_MOVE_SPEED * sin(angle2);
+	camera_position.x -= USER_MOVE_SPEED * cos(angle1);
+	camera_position.y -= USER_MOVE_SPEED * sin(angle1);
 }
 
 void Camera::moveLeft() {
@@ -63,37 +61,39 @@ Point Camera::getPosition() const {
 	return camera_position;
 }
 
-double Camera::getAngle1() const {
+float Camera::getAngle1() const {
 	return angle1;
 }
 
-double Camera::getAngle2() const {
+float Camera::getAngle2() const {
 	return angle2;
 }
 
-std::vector<std::vector<Segment>> Camera::getRays(const std::vector<Polyhedron>& objects) {
-	double RFOV_V = degreesToRadians(VERTICAL_FOV);
-	double RFOV_H = degreesToRadians(HORIZONTAL_FOV);
-	double RSTEP_V = degreesToRadians((double)VERTICAL_FOV / REAL_HEIGHT);
-	double RSTEP_H = degreesToRadians((double)HORIZONTAL_FOV / REAL_WIDTH );
+void Camera::getRays(const std::vector<Polyhedron>& objects, Segment rays[REAL_HEIGHT][REAL_WIDTH]) const{
+
+	float RFOV_V = degreesToRadians(VERTICAL_FOV);
+	float RFOV_H = degreesToRadians(HORIZONTAL_FOV);
+	float RSTEP_V = degreesToRadians(VERTICAL_FOV / REAL_HEIGHT);
+	float RSTEP_H = degreesToRadians(HORIZONTAL_FOV / REAL_WIDTH );
+
 	Segment FILLER = { getPosition(), getPosition() };
-	std::vector<std::vector<Segment>> rays(REAL_WIDTH, std::vector<Segment>(REAL_HEIGHT, FILLER));
-	for (int i = 0; i < REAL_WIDTH; i++) {
-		for (int j = 0; j < REAL_HEIGHT; j++) {
-			double a = angle1 - RFOV_H / 2 + RSTEP_H * i;
-			double b = angle2 - RFOV_V / 2 + RSTEP_V * j;
+	for (int i = 0; i < REAL_HEIGHT; i++) {
+		for (int j = 0; j < REAL_WIDTH; j++) {
+
+			float a = angle1 - RFOV_H / 2 + RSTEP_H * j;
+			float b = angle2 - RFOV_V / 2 + RSTEP_V * i;
+
+			rays[i][j] = FILLER;
+
 			rays[i][j].point2.x += RAYS_LENGTH * cos(a) * cos(b);
 			rays[i][j].point2.y += RAYS_LENGTH * sin(a) * cos(b);
 			rays[i][j].point2.z += RAYS_LENGTH * sin(b);
 		}
 	}
 
-	for (int i = 0; i < rays.size(); i++) {
-		for (int j = 0; j < rays[i].size(); j++) {
-			for (int k = 0; k < objects.size(); k++) {
-				rays[i][j].updateByPolyhedron(objects[k]);
-			}
+	for (int k = 0; k < objects.size(); k++) {
+		for (int d = 0; d < objects[k].edges.size(); d++) {
+			objects[k].edges[d].updateRays(rays);
 		}
 	}
-	return rays;
 }
