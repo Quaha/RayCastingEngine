@@ -2,11 +2,11 @@
 
 #include <cmath>
 
-float radiansToDegrees(float angle) {
+double radiansToDegrees(double angle) {
 	return angle * 180 / PI;
 }
 
-float degreesToRadians(float angle) {
+double degreesToRadians(double angle) {
 	return angle * PI / 180;
 }
 
@@ -36,7 +36,7 @@ Vector& Vector::operator+=(const Vector& other) {
 	return (*this);
 }
 
-Vector Vector::operator*(float t) const {
+Vector Vector::operator*(double t) const {
 	return { this->x * t, this->y * t, this->z * t };
 }
 
@@ -56,30 +56,38 @@ Vector Vector::operator-() const {
 	return { -this->x, -this->y, -this->z };
 }
 
-float Vector::getAbs2() const {
+double Vector::getAbs2() const {
 	return x * x + y * y + z * z;
 }
 
-float Vector::getAbs() const {
+double Vector::getAbs() const {
 	return sqrt(x * x + y * y + z * z);
 }
 
-float Vector::abs2(const Vector& vector) {
+double Vector::abs2(const Vector& vector) {
 	return vector.x * vector.x + vector.y * vector.y + vector.z * vector.z;
 }
 
-float Segment::getLength2() const {
+double Segment::getLength2() const {
 	return (point1 - point2).getAbs2();
 }
 
-float Segment::getLength() const {
+double Segment::getLength() const {
 	return (point1 - point2).getAbs();
 }
 
-Polyhedron::Polyhedron(const Point& point, float size) {
-	float x = point.x;
-	float y = point.y;
-	float z = point.z;
+bool Segment::inSegment(const Point& point) const {
+	Vector AC = point - point1;
+	Vector BC = point - point2;
+	Vector AB = point1 - point2;
+
+	return (AC.getAbs() + BC.getAbs() - AB.getAbs()) < ACCURACY;
+}
+
+Polyhedron::Polyhedron(const Point& point, double size) {
+	double x = point.x;
+	double y = point.y;
+	double z = point.z;
 
 	Triangle T1({ x, y, z }, { x + size, y, z }, { x, y + size, z });
 	Triangle T2({ x + size, y + size, z }, { x + size, y, z }, { x, y + size, z });
@@ -146,17 +154,17 @@ bool Plane::inPlane(const Point& point) {
 }
 
 Point Plane::getIntersect(const Line& line, const Plane& plane) {
-	float t = -(plane.A * line.point.x + plane.B * line.point.y + plane.C * line.point.z + plane.D) / (plane.A * line.vector.x + plane.B * line.vector.y + plane.C * line.vector.z);
+	double t = -(plane.A * line.point.x + plane.B * line.point.y + plane.C * line.point.z + plane.D) / (plane.A * line.vector.x + plane.B * line.vector.y + plane.C * line.vector.z);
 
 	Point result = line.point + line.vector * t;
 	return result;
 }
 
-float Triangle::getArea(const Point& point1, const Point& point2, const Point& point3) {
-	float d1 = (point1 - point2).getAbs();
-	float d2 = (point1 - point3).getAbs();
-	float d3 = (point2 - point3).getAbs();
-	float p = (d1 + d2 + d3) / 2;
+double Triangle::getArea(const Point& point1, const Point& point2, const Point& point3) {
+	double d1 = (point1 - point2).getAbs();
+	double d2 = (point1 - point3).getAbs();
+	double d3 = (point2 - point3).getAbs();
+	double p = (d1 + d2 + d3) / 2;
 	return sqrt(p * (p - d1) * (p - d2) * (p - d3));
 }
 
@@ -178,12 +186,7 @@ void Triangle::updateRays(Segment rays[REAL_HEIGHT][REAL_WIDTH]) const {
 		for (int j = 0; j < REAL_WIDTH; j++) {
 
 			Point possible_point = Plane::getIntersect({ rays[i][j].point1,  rays[i][j].point2 - rays[i][j].point1 }, plane);
-			if (inTriangle(possible_point)) {
-				Vector AC = possible_point - rays[i][j].point1;
-				Vector BC = possible_point - rays[i][j].point2;
-				Vector AB = rays[i][j].point1 - rays[i][j].point2;
-
-				if (abs(AC.getAbs() + BC.getAbs() - AB.getAbs()) > ACCURACY) return;
+			if (inTriangle(possible_point) && rays[i][j].inSegment(possible_point)) {
 
 				if ((rays[i][j].point2 - rays[i][j].point1).getAbs2() > (possible_point - rays[i][j].point1).getAbs2()) {
 					rays[i][j].point2 = possible_point;

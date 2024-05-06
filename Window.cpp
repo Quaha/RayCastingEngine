@@ -24,7 +24,7 @@ void Window::processingWindowEvents() {
 	}
 }
 
-void Window::drawRectangle(float x, float y, float height, float width, sf::ConvexShape &poly_shape, sf::Color C) {
+void Window::drawRectangle(float x, float  y, float  height, float width, sf::ConvexShape &poly_shape, sf::Color C) {
 	poly_shape.setPoint(0, { x, y });
 	poly_shape.setPoint(1, { x + width, y });
 	poly_shape.setPoint(2, { x + width, y + height });

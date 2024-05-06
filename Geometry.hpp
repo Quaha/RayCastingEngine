@@ -13,41 +13,41 @@ struct Line;
 struct Plane;
 struct Triangle;
 
-float radiansToDegrees(float angle);
-float degreesToRadians(float angle);
+double radiansToDegrees(double angle);
+double degreesToRadians(double angle);
 
 struct Point {
 
-	float x = 0, y = 0, z = 0;
+	double x = 0, y = 0, z = 0;
 
 	Vector operator-(const Point& point) const;
 	Point operator+(const Vector& vector) const;
 
 	Point() : x(0), y(0), z(0) {};
-	Point(float x, float y, float z) : x(x), y(y), z(z) {};
+	Point(double x, double y, double z) : x(x), y(y), z(z) {};
 };
 
 struct Vector {
 
-	float x = 0, y = 0, z = 0;
+	double x = 0, y = 0, z = 0;
 
 	Vector() : x(0), y(0), z(0) {};
-	Vector(float x, float y, float z) : x(x), y(y), z(z) {};
+	Vector(double x, double y, double z) : x(x), y(y), z(z) {};
 	Vector(const Point& point1, const Point& point2); // Create an directed vector from point1 to point2
 
 	Vector operator+(const Vector& other) const;
 	Vector& operator+=(const Vector& other);
 
-	Vector operator*(float t) const;
+	Vector operator*(double t) const;
 
 	Vector operator-(const Vector& other) const;
 	Vector& operator-=(const Vector& other);
 
 	Vector operator-() const;
 
-	float getAbs2() const;
-	float getAbs() const;
-	static float abs2(const Vector& vector);
+	double getAbs2() const;
+	double getAbs() const;
+	static double abs2(const Vector& vector);
 };
 
 struct Segment {
@@ -60,15 +60,17 @@ struct Segment {
 	Segment() : point1({ 0, 0, 0 }), point2({ 0, 0, 0 }) {};
 	Segment(const Point& point1, const Point& point2) : point1(point1), point2(point2) {};
 
-	float getLength2() const;
-	float getLength() const;
+	double getLength2() const;
+	double getLength() const;
+
+	bool inSegment(const Point& point) const;
 };
 
 struct Polyhedron {
 
 	std::vector<Triangle> edges;
 
-	Polyhedron(const Point& point, float size); // Create an cube
+	Polyhedron(const Point& point, double size); // Create an cube
 	Polyhedron(const Point& point1, const Point& point2, const Point& point3, const Point& point4); // Create an tetrahedron
 };
 
@@ -88,7 +90,7 @@ struct Plane {
 	Vector vector1 = { 0, 0, 0 };
 	Vector vector2 = { 0, 0, 0 };
 
-	float A = 0, B = 0, C = 0, D = 0;
+	double A = 0, B = 0, C = 0, D = 0;
 
 	Plane(const Point& point1, const Point& point2, const Point& point3);
 
@@ -102,7 +104,7 @@ struct Triangle {
 	Point P2 = { 0, 0, 0 };
 	Point P3 = { 0, 0, 0 };
 
-	static float getArea(const Point& point1, const Point& point2, const Point& point3);
+	static double getArea(const Point& point1, const Point& point2, const Point& point3);
 
 	Triangle(const Point& point1, const Point& point2, const Point& point3);
 	bool inTriangle(const Point& point) const;
