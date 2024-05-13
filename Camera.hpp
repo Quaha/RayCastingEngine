@@ -9,7 +9,7 @@ private:
 	Point camera_position = { 0, 0, 0 };
 
 	double angle1 = 0; // xOy
-	double angle2 = 0; // z
+	double angle2 = 0; // _|_ xOy
 
 public:
 
@@ -32,5 +32,5 @@ public:
 	double getAngle1() const;
 	double getAngle2() const;
 
-	void getRays(const std::vector<Polyhedron>& objects, Segment rays[REAL_HEIGHT][REAL_WIDTH]) const;
+	void getUpdatedRays(const std::vector<Polyhedron>& objects, std::vector<std::vector<Segment>> &rays) const;
 };

@@ -69,7 +69,7 @@ double Camera::getAngle2() const {
 	return angle2;
 }
 
-void Camera::getRays(const std::vector<Polyhedron>& objects, Segment rays[REAL_HEIGHT][REAL_WIDTH]) const{
+void Camera::getUpdatedRays(const std::vector<Polyhedron>& objects, std::vector<std::vector<Segment>> &rays) const{
 
 	double RFOV_V = degreesToRadians(VERTICAL_FOV);
 	double RFOV_H = degreesToRadians(HORIZONTAL_FOV);

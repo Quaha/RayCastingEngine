@@ -1,9 +1,9 @@
 #pragma once
 
 #include <iostream>
+#include <array>
 #include <vector>
 #include <cmath>
-#include <conio.h>
 
 #include <SFML/Graphics.hpp>
 

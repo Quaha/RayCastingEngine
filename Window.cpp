@@ -35,8 +35,8 @@ void Window::drawRectangle(float x, float  y, float  height, float width, sf::Co
 
 void Window::drawObjects3D(Camera& camera, const std::vector<Polyhedron> &objects) {
 
-	Segment rays[REAL_HEIGHT][REAL_WIDTH];
-	camera.getRays(objects, rays);
+	std::vector<std::vector<Segment>> rays(REAL_HEIGHT, std::vector<Segment>(REAL_WIDTH));
+	camera.getUpdatedRays(objects, rays);
 
 	float W = (float)WINDOW_WIDTH / REAL_WIDTH;
 	float H = (float)WINDOW_HEIGHT / REAL_HEIGHT;

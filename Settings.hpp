@@ -15,6 +15,4 @@ const double HORIZONTAL_FOV = 90; //[0, 360]
 const double PI = 3.1415926;
 const double ACCURACY = 1e-5;
 
-#pragma comment(linker, "/STACK:5120000000")
-
 const int RAYS_LENGTH = 1000;

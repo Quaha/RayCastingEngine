@@ -1,6 +1,6 @@
-#include "Geometry.hpp"
+#include "libs.hpp"
 
-#include <cmath>
+#include "Geometry.hpp"
 
 double radiansToDegrees(double angle) {
 	return angle * 180 / PI;
@@ -178,7 +178,7 @@ bool Triangle::inTriangle(const Point& P) const{
 	return abs(getArea(P1, P2, P3) - (getArea(P, P2, P3) + getArea(P1, P, P3) + getArea(P1, P2, P))) < ACCURACY;
 }
 
-void Triangle::updateRays(Segment rays[REAL_HEIGHT][REAL_WIDTH]) const {
+void Triangle::updateRays(std::vector<std::vector<Segment>> &rays) const {
 
 	Plane plane(P1, P2, P3);
 

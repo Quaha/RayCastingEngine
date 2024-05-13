@@ -1,7 +1,6 @@
 #pragma once
 
-#include <vector>
-#include <CL/cl.h>
+#include "libs.hpp"
 
 #include "Settings.hpp"
 
@@ -33,7 +32,7 @@ struct Vector {
 
 	Vector() : x(0), y(0), z(0) {};
 	Vector(double x, double y, double z) : x(x), y(y), z(z) {};
-	Vector(const Point& point1, const Point& point2); // Create an directed vector from point1 to point2
+	Vector(const Point& point1, const Point& point2); // Create a directed vector from point1 to point2
 
 	Vector operator+(const Vector& other) const;
 	Vector& operator+=(const Vector& other);
@@ -70,8 +69,8 @@ struct Polyhedron {
 
 	std::vector<Triangle> edges;
 
-	Polyhedron(const Point& point, double size); // Create an cube
-	Polyhedron(const Point& point1, const Point& point2, const Point& point3, const Point& point4); // Create an tetrahedron
+	Polyhedron(const Point& point, double size); // Create a cube
+	Polyhedron(const Point& point1, const Point& point2, const Point& point3, const Point& point4); // Create a tetrahedron
 };
 
 struct Line {
@@ -107,8 +106,9 @@ struct Triangle {
 	static double getArea(const Point& point1, const Point& point2, const Point& point3);
 
 	Triangle(const Point& point1, const Point& point2, const Point& point3);
+
 	bool inTriangle(const Point& point) const;
 
-	void updateRays(Segment rays[REAL_HEIGHT][REAL_WIDTH]) const;
+	void updateRays(std::vector<std::vector<Segment>> &rays) const;
 
 };
